@@ -1,0 +1,82 @@
+Ran this in the terminal to create egypt_labor_law_chunks.json:
+python -c "
+from pathlib import Path
+from src.law.structure_law import preprocess_law
+
+preprocess_law(
+    Path('data/law/egypt_labor_law_full.json'),
+    Path('data/law/egypt_labor_law_chunks.json')
+)
+"
+
+Then ran this to create the normalized chunks:
+python -c "
+from pathlib import Path
+from src.law.normalize_law_chunks import normalize_law_chunks
+
+normalize_law_chunks(
+    Path('data/law/egypt_labor_law_chunks.json'),
+    Path('data/law/egypt_labor_law_chunks_normalized.json')
+)
+"
+
+
+
+egypt_labor_law_chunks_normalized.json stats:
+
+Total chunks: 709
+Empty chunks: 0
+Min length: 58
+Max length: 1660
+Avg length: 294
+Article range: 1 → 298
+Total unique articles: 298
+Chunks with list items: 454
+
+
+Used notebooks/colab/build_vector_database.ipynb in google colab to create egypt_labor_law.faiss and egypt_labor_law_metadata.json
+
+
+when running this:
+python - <<EOF
+from src.retrieval.clause_to_law import LawRetriever
+from src.retrieval.postprocess import group_law_results
+
+retriever = LawRetriever()
+
+clause_text = "يستحق العامل اجازه سنويه مدفوعة الاجر"
+
+raw = retriever.search(clause_text, k=10)
+grouped = group_law_results(raw)
+
+for art in grouped:
+    print("Article:", art["article_number"])
+    print("Max score:", round(art["max_score"], 3))
+    for c in art["chunks"]:
+        print("  -", round(c["score"], 3), c["text"])
+    print("-" * 50)
+EOF
+
+this is the output (which is great):
+
+Article: 124
+Max score: 0.907
+  - 0.907 يستحق العامل اجازه سنويه باجر ، لا يدخل في حسابها ايام عطلات الاعياد
+والمناسبات الرسميه والراحه الاسبوعيه ، وذلك علي الوجه الاتي :
+خمسه عشر يوما في السنه الاولي.
+  - 0.907 يستحق العامل اجازه سنويه باجر ، لا يدخل في حسابها ايام عطلات الاعياد
+والمناسبات الرسميه والراحه الاسبوعيه ، وذلك علي الوجه الاتي :
+واحد وعشرون يوما اعتبارا من السنه الثانيه.
+  - 0.906 يستحق العامل اجازه سنويه باجر ، لا يدخل في حسابها ايام عطلات الاعياد
+والمناسبات الرسميه والراحه الاسبوعيه ، وذلك علي الوجه الاتي :
+ثلاثون يوما لمن امضي عشر سنوات كامله لدي صاحب عمل او اكثر ،
+(ا) و لمن تجاوزت سنه خمسين عاما .
+--------------------------------------------------
+Article: 128
+Max score: 0.869
+  - 0.869 للعامل ان ينقطع عن العمل لسبب عارض لمده لا تجاوز سبعه ايام خلال السنه ،
+وبحد اقصي يومان في المره الواحده ، وتحسب الاجازه العارضه من الاجازه السنويه
+المقرره للعامل .
+وللعامل الذي يولد له مولود الحق في اجازه طاريه مدفوعه الاجر يوم الولاده
+لا تحسب من رصيد اجازاته السنويه ، بحد اقصي ثلاث مرات طوال مده الخدمه .
+
