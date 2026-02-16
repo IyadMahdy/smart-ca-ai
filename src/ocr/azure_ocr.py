@@ -1,4 +1,4 @@
-from azure.ai.formrecognizer import DocumentIntelligenceClient
+from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.core.credentials import AzureKeyCredential
 
 def create_ocr_client(endpoint: str, key: str):
